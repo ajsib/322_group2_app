@@ -1,80 +1,117 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import styled from '@emotion/styled';
+import axios from 'axios';
 
 const Assignments = () => {
-    const assignments = [
-      {
-        label: "Project Overview",
-        url: "#",
-        icon: "📖"
-      },
-      {
-        label: "Tutorials",
-        url: "#",
-        icon: "🎓"
-      },
-      {
-        label: "Documents",
-        url: "#",
-        icon: "📄"
-      },
-      {
-        label: "Books",
-        url: "#",
-        icon: "📚"
-      },
-      {
-        label: "Discussion Groups",
-        url: "#",
-        icon: "💬"
-      },
-      {
-        label: "Group Policy",
-        url: "#",
-        icon: "🛡️"
-      },
-      {
-        label: "Source Code",
-        url: "https://github.com/xbmc/xbmc", // Kodi's GitHub repo
-        icon: "💻"
-      },
-    ];
+  const [activeAssignment, setActiveAssignment] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [activeFile, setActiveFile] = useState(null);
 
-const StyledDiv = styled.div`
+  useEffect(() => {
+    if (activeAssignment) {
+      axios.get(`/api/getFiles?assignment=${activeAssignment}`)
+        .then(response => {
+          setFiles(response.data.files);
+        })
+        .catch(error => {
+          console.error('Could not fetch files:', error);
+        });
+    }
+  }, [activeAssignment]);
+
+  const assignments = [
+    {
+      label: "A1",
+      url: "#",
+      icon: "📖"
+    },
+    {
+      label: "A2",
+      url: "#",
+      icon: "🎓"
+    },
+    {
+      label: "A3",
+      url: "#",
+      icon: "📄"
+    },
+    // ... (Keep your existing items if you wish)
+  ];
+
+  const StyledDiv = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: flex-start;
   `;
   
   const StyledCard = styled(Card)`
-    width: 150px;
-    height: 150px;
-    margin: 10px;
+    flex: 0 0 auto;
+    width: 30%; 
+    margin: 5px;   
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
   `;
 
-  return (
+
+  const DocumentCard = styled(Card)`
+    flex: 0 0 auto;
+    width: 20%; 
+    margin: 5px;   
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+`;
+
+return (
+  <>
     <StyledDiv>
-      {assignments.map((assignment, index) => (
-        <StyledCard key={index}>
-          <CardActionArea href={assignment.url}>
-            <CardContent>
-              <Typography gutterBottom variant="h5" component="div">
-                {assignment.icon}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {assignment.label}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-        </StyledCard>
-      ))}
+    {assignments.map((assignment, index) => (
+          <StyledCard key={index}>
+            <CardActionArea onClick={() => setActiveAssignment(assignment.label)}>
+              <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                  {assignment.icon}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {assignment.label}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </StyledCard>
+        ))}
     </StyledDiv>
-  );
+    {activeAssignment && (
+      <StyledDiv>
+        {files.map((file, index) => (
+          <DocumentCard key={index} >
+            <CardActionArea onClick={() => setActiveFile(file)} >
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  {file}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </DocumentCard>
+        ))}
+      </StyledDiv>
+    )}
+    {activeFile && (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '20px',
+        }}
+      >
+        <iframe src={`/api/getFile?assignment=${activeAssignment}&file=${activeFile}`} width="60%" height="900vh" />
+      </div>
+    )}
+  </>
+);
 };
 
 export default Assignments;
